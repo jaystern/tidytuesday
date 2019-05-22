@@ -132,10 +132,10 @@ complete %>%
   ggplot2::geom_point(mapping = ggplot2::aes(size = `Total population (Gapminder)`), 
                       show.legend = FALSE, 
                       alpha = 0.4) + 
-  ggplot2::scale_y_log10() +
+  # ggplot2::scale_y_log10() +
   ggplot2::labs(title = "Plastic waste reduces as % of population living on the coast increases", 
                 subtitle = "Kilogram per person") +
-  ggforce::geom_mark_ellipse(ggplot2::aes(filter = Entity == "China" | waste_per_capita > 90, 
+  ggforce::geom_mark_ellipse(ggplot2::aes(filter = Entity == "China" | waste_per_capita > 75, 
                                           label = Entity, 
                                           description = scales::comma(waste_per_capita)), 
                              con.colour = "red",
