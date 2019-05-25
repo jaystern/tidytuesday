@@ -124,8 +124,8 @@ complete %>%
 complete %>% 
   tidyr::drop_na() %>% 
   dplyr::mutate(ratio = `Coastal population` / `Total population (Gapminder)`,
-                waste_kg = `Mismanaged plastic waste (tonnes)` * 1000,
-                waste_per_capita = waste_kg / `Total population (Gapminder)`) %>% 
+                waste_grams = `Mismanaged plastic waste (tonnes)` * (1000 * 1000),
+                waste_per_capita = waste_grams / `Total population (Gapminder)`) %>% 
   ggplot2::ggplot(mapping = ggplot2::aes(x = ratio,
                                          y = waste_per_capita)) +
   ggplot2::geom_smooth(method = "lm") +
@@ -134,10 +134,10 @@ complete %>%
                       alpha = 0.4) + 
   # ggplot2::scale_y_log10() +
   ggplot2::labs(title = "Plastic waste reduces as % of population living on the coast increases", 
-                subtitle = "Kilogram per person") +
-  ggforce::geom_mark_ellipse(ggplot2::aes(filter = Entity == "China" | waste_per_capita > 75, 
-                                          label = Entity, 
-                                          description = scales::comma(waste_per_capita)), 
+                subtitle = "Grams per person") +
+  ggforce::geom_mark_ellipse(ggplot2::aes(filter = Entity == "China" | waste_per_capita > 75000,
+                                          label = Entity,
+                                          description = scales::comma(waste_per_capita)),
                              con.colour = "red",
                              colour = "darkred") +
   # ggforce::geom_mark_rect(ggplot2::aes(filter = ratio > 1.3, 
@@ -158,4 +158,47 @@ complete %>%
 ```
 
 
+
+
+```{r}
+
+complete %>% 
+  tidyr::drop_na() %>% 
+  dplyr::mutate(ratio = `Coastal population` / `Total population (Gapminder)`,
+                waste_grams = `Mismanaged plastic waste (tonnes)` * (1000 * 1000),
+                waste_per_capita = waste_grams / `Coastal population`) %>% 
+  ggplot2::ggplot(mapping = ggplot2::aes(x = ratio,
+                                         y = waste_per_capita)) +
+  ggplot2::geom_smooth(method = "lm") +
+  ggplot2::geom_point(mapping = ggplot2::aes(size = `Total population (Gapminder)`), 
+                      show.legend = FALSE, 
+                      alpha = 0.4) + 
+  # ggplot2::scale_y_log10() +
+  ggplot2::labs(title = "Percentage of coastal population has no effect on plastic waste", 
+                subtitle = "Grams per coastal person", 
+                x = "Ratio of Coastal population to all population",
+                y = "Plastic waste per coastal population (grams)") +
+  ggforce::geom_mark_ellipse(ggplot2::aes(filter = Entity == "China" | waste_per_capita > 75000,
+                                          label = Entity,
+                                          description = scales::comma(waste_per_capita)),
+                             label.fontsize = 9,
+                             con.colour = "red",
+                             colour = "darkred") +
+  ggforce::geom_mark_rect(ggplot2::aes(filter = ratio > 1.3,
+                                          label = Entity,
+                                          description = scales::comma(waste_per_capita)),
+                          label.fontsize = 9,
+                          con.colour = "green",
+                          colour = "darkgreen") +
+  ggforce::geom_mark_circle(ggplot2::aes(filter = Entity == "Australia",
+                                         label = Entity,
+                                         description = scales::comma(waste_per_capita, 
+                                                                     accuracy = .01)),
+                            label.fontsize = 9,
+                            con.colour = "blue",
+                            colour = "darkblue") +
+  ggplot2::theme_minimal()
+
+
+```
 
