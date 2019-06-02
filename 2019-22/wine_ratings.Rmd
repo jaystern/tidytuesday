@@ -81,3 +81,11 @@ coeffs %>%
 
 ```
 
+inspiration from David Robinson screen cast
+
+```{r}
+
+ggsave("wine_variety_price_points.png")
+
+```
+
