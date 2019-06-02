@@ -1,0 +1,83 @@
+---
+title: "Wine ratings"
+author: "Me"
+date: "02/06/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Setup --------
+library(tidyverse)
+library(glmnet)
+
+
+# Load data --------
+wine_ratings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-05-28/winemag-data-130k-v2.csv") %>% 
+  filter(!is.na(points),
+         !is.na(price))
+
+```
+
+
+
+# Relationship between price and points
+```{r}
+
+wine_ratings %>% 
+  ggplot(mapping = aes(x = points, y = log(price))) +
+  geom_point(alpha = 0.2) +
+  geom_smooth()
+
+```
+
+# Questions
+
+- Can we predict the points given the price and variety?
+```{r}
+
+price_points_variety <- 
+  wine_ratings %>% 
+  drop_na(points, price, variety)
+
+# convert to a sparse_matrix of just the columns we are interested in
+sparse_matrix <-
+  model.matrix(points ~ price + variety, 
+               data = price_points_variety)
+
+# Fit a GLM model
+cv.glm_model <- glmnet::cv.glmnet(x = sparse_matrix, 
+                                  y = pull(price_points_variety, points))
+
+
+plot(cv.glm_model)
+
+```
+
+```{r}
+
+coeffs <- 
+  coef(cv.glm_model, s = cv.glm_model$lambda.1se) %>% 
+  broom::tidy() %>% 
+  group_by(direction = if_else(value > 0, "positive", "negative")) %>% 
+  top_n(10, abs(value)) %>% 
+  ungroup() %>% 
+  mutate(row = str_remove(row, "variety")) %>% 
+  mutate(row = forcats::fct_reorder(row, value)) 
+
+coeffs %>% 
+  filter(row != "(Intercept)") %>% 
+  ggplot(aes(x = row, 
+             y = value, 
+             fill = direction)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(x = "Variety",
+       y = "Influence on points",
+       title = "Which wine varieties have more points for price",
+       subtitle = "Controlled for price") +
+  theme_light()
+
+```
+
