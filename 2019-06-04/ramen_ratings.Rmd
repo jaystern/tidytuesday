@@ -36,7 +36,8 @@ ramen_styles <-
   ramen_ratings %>% 
   drop_na(stars) %>% 
   mutate(style = fct_lump(style, 3), 
-         style = fct_explicit_na(style, "Other"))
+         style = fct_explicit_na(style, "Other"),
+         style = fct_infreq(style, ordered = TRUE))
 
 ramen_style_stats <- 
   ramen_styles %>% 
@@ -89,16 +90,36 @@ ramen_styles %>%
                        y = stars,
                        group = style,
                        colour = style)) +
+  geom_hline(data = ramen_style_stats, 
+             mapping = aes(yintercept = med)) +
   geom_violin(show.legend = FALSE) +
   ggbeeswarm::geom_quasirandom(show.legend = FALSE, 
                                alpha = 0.2, 
-                               position = position_jitter(width = 0.8)) +
+                               groupOnX = TRUE) +
+  geom_text(data = ramen_style_stats,
+            mapping = aes(x = style, 
+                          y = 2, 
+                          label = glue::glue("{scales::comma(n)} samples"),
+                          hjust = -0.1),
+            nudge_x = 0.4,
+            show.legend = FALSE) +
   coord_flip() +
   labs(title = "Distribution of star ratings by ramen style",
        x = "",
        y = "Number of stars in rating") +
+  scale_y_reverse() +
+  scale_x_discrete(breaks = NULL) +
+  facet_grid(style ~ ., 
+             scales = "free_y",
+             switch = "y") +
   theme_light()
 
 ```
 
+
+```{r}
+ggsave("ramen_ratings.png")
+```
+
+Rating have unusual distributions, where a very high percentage having full marks of 5, and relatively smaller number having ratings 4.5. 
 
