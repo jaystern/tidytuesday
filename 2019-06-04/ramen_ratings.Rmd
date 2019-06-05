@@ -1,0 +1,104 @@
+---
+title: "ramen_ratings"
+author: "Me"
+date: "05/06/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+ramen_ratings <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-04/ramen_ratings.csv")
+
+```
+
+
+# Take a look at the data
+
+Data set has `r nrow(ramen_ratings)` observations and `r ncol(ramen_ratings)` variables
+
+# Distribution of ratings
+```{r}
+
+ramen_ratings %>% 
+  drop_na(stars) %>% 
+  ggplot() +
+  geom_density(mapping = aes(x = stars))
+
+```
+
+
+```{r}
+
+ramen_styles <- 
+  ramen_ratings %>% 
+  drop_na(stars) %>% 
+  mutate(style = fct_lump(style, 3), 
+         style = fct_explicit_na(style, "Other"))
+
+ramen_style_stats <- 
+  ramen_styles %>% 
+  group_by(style) %>% 
+  summarise(med = median(stars),
+            avg = mean(stars),
+            sd = sd(stars),
+            n = n())
+```
+
+```{r}
+ramen_styles %>% 
+  ggplot() +
+  geom_density(mapping = aes(x = stars, 
+                             group = style,
+                             fill = style),
+               alpha = 0.3,
+               show.legend = FALSE) +
+  # Show median values by style
+  geom_vline(data = ramen_style_stats, 
+             mapping = aes(xintercept = med,
+                           colour = style),
+             lty = 2,
+             show.legend = FALSE) +
+  # show standard deviations lines
+  geom_vline(data = ramen_style_stats,
+             mapping = aes(xintercept = avg - sd, 
+                           colour = style),
+             lty = 3,
+             show.legend = FALSE) +
+  geom_vline(data = ramen_style_stats,
+             mapping = aes(xintercept = avg + sd, 
+                           colour = style),
+             lty = 3,
+             show.legend = FALSE) +
+  facet_grid(style ~ .) + 
+  labs(title = "Distribution of star ratings by ramen style",
+       subtitle = "Cup style has lowest median",
+       x = "Number of stars in rating",
+       y = "Density") +
+  theme_light()
+
+
+```
+
+
+```{r}
+ramen_styles %>% 
+  ggplot(mapping = aes(x = style,
+                       y = stars,
+                       group = style,
+                       colour = style)) +
+  geom_violin(show.legend = FALSE) +
+  ggbeeswarm::geom_quasirandom(show.legend = FALSE, 
+                               alpha = 0.2, 
+                               position = position_jitter(width = 0.8)) +
+  coord_flip() +
+  labs(title = "Distribution of star ratings by ramen style",
+       x = "",
+       y = "Number of stars in rating") +
+  theme_light()
+
+```
+
+
