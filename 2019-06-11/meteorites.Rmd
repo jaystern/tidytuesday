@@ -1,0 +1,87 @@
+---
+title: "Meteorites"
+author: "Me"
+date: "15/06/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+meteorites <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-11/meteorites.csv")
+
+```
+
+
+```{r}
+
+glimpse(meteorites)
+
+```
+
+```{r}
+
+meteorites %>% 
+  filter(!is.na(mass),
+         mass != 0) %>% 
+  ggplot(mapping = aes(x = mass)) +
+  geom_histogram() +
+  scale_x_log10(labels = scales::comma_format()) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  labs(x = "Mass (g)")
+  
+
+```
+
+
+```{r}
+
+meteorites %>% 
+  filter(mass < 1)
+
+```
+
+## Thoughts
+
+Was hoping to model time between meteor strikes as a poisson(?) or more appropriate distribution. However the date/times for these are only for the year. So probably not worth it. 
+
+```{r}
+meteorites %>% 
+  group_by(year) %>% 
+  summarise(n = n()) %>% 
+  filter(year >= 1960,
+         year <= lubridate::year(Sys.Date())) %>% 
+  ggplot(mapping = aes(x = year, 
+                       y = n)) +
+  geom_bar(stat = "identity")
+```
+
+And data collection seems to have not be consistent since 1960. i.e. 1960~73 had very low volumes, '74-'96 had 'medium' volumes an increased in the last 20 years.
+
+
+```{r}
+
+meteorites %>% 
+  filter(grepl("mar", class, ignore.case = TRUE)) %>% 
+  count(class, sort = TRUE)
+
+```
+
+```{r}
+
+meteorites %>% 
+  filter(grepl("mar", class, ignore.case = TRUE)) %>% 
+  ggplot(aes(x = mass)) +
+  geom_histogram() +
+  scale_x_log10()
+
+
+```
+
+
+
+
+
+
