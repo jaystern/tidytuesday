@@ -1,0 +1,106 @@
+---
+title: "Media Franchise"
+author: "Me"
+date: "21/07/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+media_franchises <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-07-02/media_franchises.csv")
+
+library(tidyverse)
+
+```
+
+
+# Explore the franchises
+```{r}
+
+glimpse(media_franchises)
+
+```
+
+
+```{r}
+count(media_franchises, franchise, sort = TRUE)
+```
+
+```{r}
+media_franchises %>% 
+  count(revenue_category, sort = TRUE)
+```
+
+```{r}
+media_franchises %>% 
+  count(original_media, sort = TRUE)
+```
+
+
+# Have a look at star wars
+```{r}
+
+media_franchises %>% 
+  filter(franchise == "Star Wars") %>% 
+  ggplot(aes(x = revenue_category, 
+             y = revenue,
+             fill = revenue_category)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  labs(title = "Star Wars Revenue Sources") +
+  theme_minimal() +
+  theme(
+    legend.position = "none"
+  )
+
+```
+
+# Look at top n
+```{r}
+
+media_franchises %>% 
+  semi_join(y = 
+              group_by(media_franchises, franchise) %>% 
+              summarise(total_rev = sum(revenue)) %>% 
+              top_n(15, total_rev),
+            by = "franchise") %>% 
+  mutate(franchise = forcats::fct_reorder(franchise, revenue, sum)) %>% 
+  ggplot(aes(x = franchise,
+             y = revenue,
+             fill = revenue_category)) +
+  geom_bar(stat = "identity",
+           position = position_stack()) +
+  coord_flip() +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(x = "", y = "Revenue ($Billions)", fill = "") +
+  theme_light() +
+  theme(
+    legend.position = "bottom"
+  )
+
+```
+
+```{r}
+
+media_franchises %>% 
+  mutate(revenue_category = forcats::fct_reorder(revenue_category, revenue, sum)) %>% 
+  ggplot(aes(x = revenue_category,
+             y = revenue,
+             fill = revenue_category)) +
+  geom_bar(stat = "identity",
+           position = position_stack()) +
+  coord_flip() +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(x = "", y = "Revenue ($Billions)", fill = "",
+       title = "Largest sources of revenue") +
+  theme_light() +
+  theme(
+    legend.position = "bottom"
+  )
+
+
+```
+
+
+
